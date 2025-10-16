@@ -10,7 +10,7 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: process.env.CLIENT_URL || process.env.REACT_APP_SERVER_URL || "http://localhost:3000",
     methods: ["GET", "POST"]
   }
 })
@@ -33,10 +33,65 @@ if (process.env.DATABASE_URL) {
 
 // In-memory database for local development
 const inMemoryDB = {
+  users: [],
   tournaments: [],
   players: [],
   rounds: [],
   pairings: []
+}
+
+// Simple password hashing (in production, use bcrypt)
+const hashPassword = (password) => {
+  return Buffer.from(password).toString('base64')
+}
+
+// Simple password verification
+const verifyPassword = (password, hash) => {
+  return hashPassword(password) === hash
+}
+
+// Generate JWT-like token (simplified for demo)
+const generateToken = (userId) => {
+  return Buffer.from(JSON.stringify({ userId, timestamp: Date.now() })).toString('base64')
+}
+
+// Verify token
+const verifyToken = (token) => {
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+    return decoded.userId
+  } catch {
+    return null
+  }
+}
+
+// Middleware to check authentication
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' })
+  }
+
+  const userId = verifyToken(token)
+  if (!userId) {
+    return res.status(403).json({ error: 'Invalid token' })
+  }
+
+  if (useInMemoryDB) {
+    const user = inMemoryDB.users.find(u => u.id === userId)
+    if (!user) {
+      return res.status(403).json({ error: 'User not found' })
+    }
+    req.user = user
+  } else {
+    // For PostgreSQL, we'll need to fetch user from database
+    // For now, just set userId
+    req.user = { id: userId }
+  }
+  
+  next()
 }
 
 // Initialize database tables
@@ -47,6 +102,17 @@ const initDatabase = async () => {
   }
 
   try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        first_name VARCHAR(255) NOT NULL,
+        last_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tournaments (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -101,6 +167,182 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static('dist'))
 
+// Authentication routes
+app.post('/api/auth/register', async (req, res) => {
+  const { firstName, lastName, email, password } = req.body
+
+  if (!firstName || !lastName || !email || !password) {
+    return res.status(400).json({ error: 'All fields are required' })
+  }
+
+  try {
+    if (useInMemoryDB) {
+      // Check if user already exists
+      const existingUser = inMemoryDB.users.find(u => u.email === email)
+      if (existingUser) {
+        return res.status(400).json({ error: 'User with this email already exists' })
+      }
+
+      // Create new user
+      const user = {
+        id: uuidv4(),
+        firstName,
+        lastName,
+        email,
+        password: hashPassword(password),
+        createdAt: new Date().toISOString()
+      }
+
+      inMemoryDB.users.push(user)
+
+      // Generate token
+      const token = generateToken(user.id)
+
+      res.json({
+        message: 'User registered successfully',
+        token,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email
+        }
+      })
+    } else {
+      // PostgreSQL implementation
+      const hashedPassword = hashPassword(password)
+      
+      const result = await pool.query(`
+        INSERT INTO users (first_name, last_name, email, password)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, first_name, last_name, email, created_at
+      `, [firstName, lastName, email, hashedPassword])
+
+      const user = result.rows[0]
+      const token = generateToken(user.id)
+
+      res.json({
+        message: 'User registered successfully',
+        token,
+        user: {
+          id: user.id,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email
+        }
+      })
+    }
+  } catch (error) {
+    if (error.code === '23505') { // Unique constraint violation
+      return res.status(400).json({ error: 'User with this email already exists' })
+    }
+    console.error('Registration error:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' })
+  }
+
+  try {
+    if (useInMemoryDB) {
+      // Find user
+      const user = inMemoryDB.users.find(u => u.email === email)
+      if (!user || !verifyPassword(password, user.password)) {
+        return res.status(401).json({ error: 'Invalid email or password' })
+      }
+
+      // Generate token
+      const token = generateToken(user.id)
+
+      res.json({
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email
+        }
+      })
+    } else {
+      // PostgreSQL implementation
+      const result = await pool.query(`
+        SELECT id, first_name, last_name, email, password
+        FROM users WHERE email = $1
+      `, [email])
+
+      if (result.rows.length === 0) {
+        return res.status(401).json({ error: 'Invalid email or password' })
+      }
+
+      const user = result.rows[0]
+      if (!verifyPassword(password, user.password)) {
+        return res.status(401).json({ error: 'Invalid email or password' })
+      }
+
+      // Generate token
+      const token = generateToken(user.id)
+
+      res.json({
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    if (useInMemoryDB) {
+      res.json({
+        user: {
+          id: req.user.id,
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          email: req.user.email
+        }
+      })
+    } else {
+      // For PostgreSQL, fetch user details
+      const result = await pool.query(`
+        SELECT id, first_name, last_name, email
+        FROM users WHERE id = $1
+      `, [req.user.id])
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' })
+      }
+
+      const user = result.rows[0]
+      res.json({
+        user: {
+          id: user.id,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Auth me error:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id)
@@ -123,10 +365,10 @@ io.on('connection', (socket) => {
   })
 })
 
-// API Routes
+// API Routes (all protected with authentication)
 
 // Get all tournaments
-app.get('/api/tournaments', async (req, res) => {
+app.get('/api/tournaments', authenticateToken, async (req, res) => {
   try {
     if (useInMemoryDB) {
       const tournaments = inMemoryDB.tournaments.map(tournament => ({
@@ -171,7 +413,7 @@ app.get('/api/tournaments', async (req, res) => {
 })
 
 // Create tournament
-app.post('/api/tournaments', async (req, res) => {
+app.post('/api/tournaments', authenticateToken, async (req, res) => {
   try {
     const { name, maxRounds, timeControl } = req.body
     
@@ -203,7 +445,7 @@ app.post('/api/tournaments', async (req, res) => {
 })
 
 // Get tournament details
-app.get('/api/tournaments/:id', async (req, res) => {
+app.get('/api/tournaments/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
 
@@ -327,7 +569,7 @@ app.post('/api/tournaments/:id/join', async (req, res) => {
 })
 
 // Add player to tournament
-app.post('/api/tournaments/:id/players', async (req, res) => {
+app.post('/api/tournaments/:id/players', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { name, rating, email } = req.body
@@ -351,7 +593,7 @@ app.post('/api/tournaments/:id/players', async (req, res) => {
 })
 
 // Start new round
-app.post('/api/tournaments/:id/rounds', async (req, res) => {
+app.post('/api/tournaments/:id/rounds', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
     const { roundNumber, pairings } = req.body
@@ -382,7 +624,7 @@ app.post('/api/tournaments/:id/rounds', async (req, res) => {
 })
 
 // Update pairing result
-app.put('/api/tournaments/:id/pairings/:pairingId', async (req, res) => {
+app.put('/api/tournaments/:id/pairings/:pairingId', authenticateToken, async (req, res) => {
   try {
     const { pairingId } = req.params
     const { result } = req.body
@@ -398,6 +640,75 @@ app.put('/api/tournaments/:id/pairings/:pairingId', async (req, res) => {
     res.json(updatedTournament)
   } catch (error) {
     console.error('Error updating pairing:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+})
+
+// Delete player
+app.delete('/api/tournaments/:id/players/:playerId', authenticateToken, async (req, res) => {
+  try {
+    const { playerId } = req.params
+    
+    await pool.query(`
+      DELETE FROM players WHERE id = $1
+    `, [playerId])
+
+    // Remove all pairings involving this player
+    await pool.query(`
+      DELETE FROM pairings WHERE white_player_id = $1 OR black_player_id = $1
+    `, [playerId])
+
+    const updatedTournament = await getTournamentDetails(req.params.id)
+    res.json(updatedTournament)
+  } catch (error) {
+    console.error('Error deleting player:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+})
+
+// Update player
+app.put('/api/tournaments/:id/players/:playerId', authenticateToken, async (req, res) => {
+  try {
+    const { playerId } = req.params
+    const { name, rating, disabled } = req.body
+
+    if (name || rating !== undefined) {
+      await pool.query(`
+        UPDATE players SET name = COALESCE($1, name), rating = COALESCE($2, rating)
+        WHERE id = $3
+      `, [name, rating, playerId])
+    }
+
+    const updatedTournament = await getTournamentDetails(req.params.id)
+    res.json(updatedTournament)
+  } catch (error) {
+    console.error('Error updating player:', error)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+})
+
+// Delete round
+app.delete('/api/tournaments/:id/rounds/:roundId', authenticateToken, async (req, res) => {
+  try {
+    const { roundId } = req.params
+    
+    // Delete all pairings for this round first
+    await pool.query(`
+      DELETE FROM pairings WHERE round_id = $1
+    `, [roundId])
+
+    // Delete the round
+    await pool.query(`
+      DELETE FROM rounds WHERE id = $1
+    `, [roundId])
+
+    // Update player scores
+    await updatePlayerScores(req.params.id)
+
+    const updatedTournament = await getTournamentDetails(req.params.id)
+    res.json(updatedTournament)
+  } catch (error) {
+    console.error('Error deleting round:', error)
     res.status(500).json({ message: 'Internal server error' })
   }
 })
