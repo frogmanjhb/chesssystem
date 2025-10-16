@@ -1,4 +1,4 @@
-# ♔ Chess Tournament Manager
+# ♔ Chess System
 
 A comprehensive, single-file React application for managing Swiss System chess tournaments with real-time collaboration features. Built with React, Express.js, PostgreSQL, and Socket.io.
 

@@ -1,7 +1,7 @@
 {
-  "name": "chess-tournament-manager",
+  "name": "chess_system",
   "version": "1.0.0",
-  "description": "Single-File Real-Time Chess Tournament Manager",
+  "description": "Chess System - Real-Time Chess Tournament Manager",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

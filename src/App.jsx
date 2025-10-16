@@ -689,7 +689,7 @@ const App = () => {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-        <h1>♔ Chess Tournament Manager</h1>
+        <h1>♔ Chess System</h1>
           {isAuthenticated ? (
             <div className="user-info">
               <span>Welcome, {user?.firstName} {user?.lastName}</span>
@@ -870,7 +870,7 @@ const App = () => {
               <div className="hero-content">
                 <div className="hero-badge">
                   <span className="badge-icon">♔</span>
-                  <span className="badge-text">Chess Tournament Manager</span>
+                  <span className="badge-text">Chess System</span>
             </div>
                 <h1 className="hero-title">
                   Organize Epic <span className="gradient-text">Chess Battles</span>
