@@ -5,7 +5,19 @@ import './App.css'
 // Note: Database connection is handled in server.js
 
 // Socket connection
-const socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:5000')
+const getServerUrl = () => {
+  if (import.meta.env.VITE_SERVER_URL) {
+    return import.meta.env.VITE_SERVER_URL
+  }
+  // In production, use the current domain
+  if (window.location.hostname !== 'localhost') {
+    return window.location.origin
+  }
+  // Development fallback
+  return 'http://localhost:5000'
+}
+
+const socket = io(getServerUrl())
 
 const App = () => {
   // Authentication state
@@ -167,7 +179,7 @@ const App = () => {
     
     try {
       console.log('Attempting registration with data:', authForm)
-      const url = `${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/auth/register`
+      const url = `${getServerUrl()}/api/auth/register`
       console.log('Registration URL:', url)
       
       const response = await fetch(url, {
@@ -206,7 +218,7 @@ const App = () => {
     
     try {
       console.log('Attempting login with email:', authForm.email)
-      const url = `${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/auth/login`
+      const url = `${getServerUrl()}/api/auth/login`
       console.log('Login URL:', url)
       
       const response = await fetch(url, {
@@ -258,7 +270,7 @@ const App = () => {
     if (!token) return
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/auth/me`, {
+      const response = await fetch(`${getServerUrl()}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -313,7 +325,7 @@ const App = () => {
       headers['Authorization'] = `Bearer ${token}`
     }
     
-    return fetch(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}${url}`, {
+    return fetch(`${getServerUrl()}${url}`, {
       ...options,
       headers
     })
