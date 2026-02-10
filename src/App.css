@@ -201,6 +201,27 @@ body {
   transform: translateY(-1px);
 }
 
+/* Help button in nav - override default nav button styles */
+.user-info .nav .btn-help {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a6f) !important;
+  border: 2px solid #ff6b6b !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.user-info .nav .btn-help:hover {
+  background: linear-gradient(135deg, #ff5252, #e04a5f) !important;
+  border-color: #ff5252 !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5) !important;
+}
+
+.user-info .nav .btn-help.active {
+  background: linear-gradient(135deg, #e63946, #dc2f02) !important;
+  border-color: #e63946 !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.6) !important;
+}
+
 /* Auth buttons in header */
 .auth-buttons {
   display: flex;
@@ -2717,8 +2738,8 @@ body {
 }
 
 .btn-help {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+  border: 2px solid #ff6b6b;
   color: white;
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
@@ -2729,14 +2750,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .btn-help:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #ff5252, #e04a5f);
+  border-color: #ff5252;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
 }
 
 /* Responsive Help Page */

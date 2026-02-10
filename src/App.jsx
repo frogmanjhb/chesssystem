@@ -709,7 +709,7 @@ const App = () => {
             </button>
           )}
           <button 
-            className={view === 'help' ? 'active' : ''} 
+            className={`btn-help ${view === 'help' ? 'active' : ''}`}
             onClick={() => setView('help')}
           >
             ❓ Help
