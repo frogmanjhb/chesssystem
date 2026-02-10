@@ -708,6 +708,12 @@ const App = () => {
               Tournament
             </button>
           )}
+          <button 
+            className={view === 'help' ? 'active' : ''} 
+            onClick={() => setView('help')}
+          >
+            ❓ Help
+          </button>
         </nav>
               <button className="btn btn-small btn-secondary" onClick={logout}>
                 Sign Out
@@ -715,6 +721,12 @@ const App = () => {
             </div>
           ) : (
             <div className="auth-buttons">
+              <button 
+                className="btn btn-help"
+                onClick={() => setView('help')}
+              >
+                ❓ Help
+              </button>
               <button 
                 className="btn btn-primary"
                 onClick={() => setView('login')}
@@ -1054,6 +1066,158 @@ const App = () => {
           </div>
         )}
 
+        {view === 'help' && (
+          <div className="help-view">
+            <div className="help-hero">
+              <div className="help-icon">❓</div>
+              <h1>Getting Started with Chess System</h1>
+              <p className="help-subtitle">Follow these simple steps to organize your chess tournament</p>
+            </div>
+
+            <div className="help-content">
+              <div className="help-section">
+                <div className="step-number">1</div>
+                <div className="step-content">
+                  <h3>Create Your Account</h3>
+                  <ul>
+                    <li>Click the <strong>"Sign Up"</strong> button in the top-right corner</li>
+                    <li>Fill in your First Name, Last Name, Email, and Password</li>
+                    <li>Click <strong>"Sign Up"</strong> to create your account</li>
+                    <li>You'll be automatically logged in!</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <div className="step-number">2</div>
+                <div className="step-content">
+                  <h3>Create Your First Tournament</h3>
+                  <ul>
+                    <li>From the home page, click <strong>"Create New Tournament"</strong></li>
+                    <li><strong>Tournament Name</strong>: Give it a descriptive name (e.g., "Spring Chess Championship")</li>
+                    <li><strong>Max Rounds</strong>: Choose how many rounds to play (3-7 rounds)</li>
+                    <li><strong>Time Control</strong>: Select the time limit per game (e.g., 30+0 means 30 minutes per player)</li>
+                    <li>Click <strong>"Create Tournament"</strong></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <div className="step-number">3</div>
+                <div className="step-content">
+                  <h3>Add Students/Players</h3>
+                  <p><strong>Option A: Add Players One at a Time</strong></p>
+                  <ul>
+                    <li>Enter the student's first name and last name</li>
+                    <li>Enter their chess rating (use 1200 if you're not sure)</li>
+                    <li>Click <strong>"Add Student"</strong></li>
+                  </ul>
+                  <p><strong>Option B: Bulk Import (Faster!)</strong></p>
+                  <ul>
+                    <li>Click <strong>"Bulk Import"</strong></li>
+                    <li>Type or paste names, one per line (e.g., "John Doe")</li>
+                    <li>Click <strong>"Import Students"</strong></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <div className="step-number">4</div>
+                <div className="step-content">
+                  <h3>Generate Your First Round</h3>
+                  <ul>
+                    <li>Once you have at least 2 students added, click <strong>"Generate New Round"</strong></li>
+                    <li>The system will automatically create fair pairings using the Swiss system</li>
+                    <li>Go to the <strong>"Current Round"</strong> tab to see the matches</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <div className="step-number">5</div>
+                <div className="step-content">
+                  <h3>Enter Game Results</h3>
+                  <ul>
+                    <li>In the <strong>"Current Round"</strong> tab, you'll see all the pairings</li>
+                    <li>For each game, click the appropriate result button:</li>
+                    <li className="result-examples">
+                      <span className="result-badge white-win">1-0</span> White wins
+                      <span className="result-badge draw">½-½</span> Draw
+                      <span className="result-badge black-win">0-1</span> Black wins
+                    </li>
+                    <li>Results automatically update the standings!</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <div className="step-number">6</div>
+                <div className="step-content">
+                  <h3>View Standings</h3>
+                  <ul>
+                    <li>Click the <strong>"Standings"</strong> tab to see current rankings</li>
+                    <li>Players are sorted by score, then by rating</li>
+                    <li>Check who's leading the tournament!</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <div className="step-number">7</div>
+                <div className="step-content">
+                  <h3>Continue Playing</h3>
+                  <ul>
+                    <li>After all games in a round are complete, click <strong>"Generate New Round"</strong></li>
+                    <li>The system creates new pairings based on current scores</li>
+                    <li>Repeat until you've completed all rounds</li>
+                    <li>When finished, click <strong>"End Tournament"</strong></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="help-tips">
+                <h3>✨ Quick Tips</h3>
+                <div className="tips-grid">
+                  <div className="tip-card">
+                    <div className="tip-icon">✅</div>
+                    <div className="tip-text">
+                      <strong>Mark students as absent</strong>
+                      <p>Use the "Absent" checkbox if a student can't play that round</p>
+                    </div>
+                  </div>
+                  <div className="tip-card">
+                    <div className="tip-icon">✏️</div>
+                    <div className="tip-text">
+                      <strong>Edit player info</strong>
+                      <p>Click "Edit" next to any student to change their name or rating</p>
+                    </div>
+                  </div>
+                  <div className="tip-card">
+                    <div className="tip-icon">📋</div>
+                    <div className="tip-text">
+                      <strong>View all rounds</strong>
+                      <p>Use the "All Rounds" tab to review past games</p>
+                    </div>
+                  </div>
+                  <div className="tip-card">
+                    <div className="tip-icon">🔄</div>
+                    <div className="tip-text">
+                      <strong>Real-time updates</strong>
+                      <p>Multiple people can view the same tournament live!</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="help-footer">
+                <p>That's it! You're ready to run your first chess tournament! 🏆</p>
+                <button className="btn btn-primary btn-large" onClick={() => setView(isAuthenticated ? 'home' : 'register')}>
+                  {isAuthenticated ? 'Back to Home' : 'Get Started Now'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {(view === 'players' || view === 'standings' || view === 'all-rounds' || view === 'current-round') && currentTournament && (
           <div className="tournament-view">
