@@ -177,6 +177,13 @@ const App = () => {
     setAuthLoading(true)
     setAuthError('')
     
+    // Validate email domain
+    if (!authForm.email.toLowerCase().endsWith('@stpeters.co.za')) {
+      setAuthError('Only @stpeters.co.za email addresses are allowed to register')
+      setAuthLoading(false)
+      return
+    }
+    
     try {
       console.log('Attempting registration with data:', authForm)
       const url = `${getServerUrl()}/api/auth/register`
@@ -846,8 +853,12 @@ const App = () => {
                     type="email"
                     value={authForm.email}
                     onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
+                    placeholder="yourname@stpeters.co.za"
                     required
                   />
+                  <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.25rem', display: 'block' }}>
+                    Only @stpeters.co.za email addresses are allowed
+                  </small>
                 </div>
                 
                 <div className="form-group">
@@ -1082,6 +1093,7 @@ const App = () => {
                   <ul>
                     <li>Click the <strong>"Sign Up"</strong> button in the top-right corner</li>
                     <li>Fill in your First Name, Last Name, Email, and Password</li>
+                    <li><strong>Important:</strong> Use your @stpeters.co.za email address (only St Peter's emails are allowed)</li>
                     <li>Click <strong>"Sign Up"</strong> to create your account</li>
                     <li>You'll be automatically logged in!</li>
                   </ul>

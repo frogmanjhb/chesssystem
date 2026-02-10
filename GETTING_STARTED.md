@@ -8,10 +8,12 @@
 3. Fill in your details:
    - First Name
    - Last Name
-   - Email address
+   - Email address (**Important:** Must be your @stpeters.co.za email)
    - Password
 4. Click **"Sign Up"** to create your account
 5. You'll be automatically logged in!
+
+**Note:** Only St Peter's email addresses (@stpeters.co.za) are allowed to register.
 
 ### 2. Create Your First Tournament
 1. From the home page, click **"Create New Tournament"**

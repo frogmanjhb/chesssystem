@@ -175,6 +175,11 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' })
   }
 
+  // Validate email domain
+  if (!email.toLowerCase().endsWith('@stpeters.co.za')) {
+    return res.status(400).json({ error: 'Only @stpeters.co.za email addresses are allowed to register' })
+  }
+
   try {
     if (useInMemoryDB) {
       // Check if user already exists
