@@ -712,7 +712,7 @@ const App = () => {
             className={`btn-help ${view === 'help' ? 'active' : ''}`}
             onClick={() => setView('help')}
           >
-            ❓ Help
+            Help
           </button>
         </nav>
               <button className="btn btn-small btn-secondary" onClick={logout}>
@@ -725,7 +725,7 @@ const App = () => {
                 className="btn btn-help"
                 onClick={() => setView('help')}
               >
-                ❓ Help
+                Help
               </button>
               <button 
                 className="btn btn-primary"
